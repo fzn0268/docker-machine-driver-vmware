@@ -39,6 +39,10 @@ func setVmwareCmd(cmd string) string {
 	return ""
 }
 
+func setVmwareCmdWithDirPath(dirPath string, cmd string) string {
+	return ""
+}
+
 func getShareDriveAndName() (string, string, string) {
 	return "", "", ""
 }

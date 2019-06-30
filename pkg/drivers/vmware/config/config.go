@@ -47,6 +47,8 @@ type Config struct {
 	ConfigDriveISO string
 	ConfigDriveURL string
 	NoShare        bool
+	VIXPath        string
+	VDiskMgrPath   string
 }
 
 // NewConfig creates a new Config
@@ -114,6 +116,16 @@ func (c *Config) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "VMWARE_NO_SHARE",
 			Name:   "vmware-no-share",
 			Usage:  "Disable the mount of your home directory",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "VMWARE_VIX_DIR_PATH",
+			Name:   "vmware-vix-dir-path",
+			Usage:  "Specify VMware VIX SDK Directory Path",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "VMWARE_VDISK_MGR_DIR_PATH",
+			Name:   "vmware-vdisk-mgr-dir-path",
+			Usage:  "Specify VMware vDisk Manager Directory Path",
 		},
 	}
 }

@@ -52,19 +52,23 @@ $ docker-machine create --driver=vmware default
 - `--vmware-no-share`: Disable the mount of your home directory
 - `--vmware-ssh-password`: SSH password
 - `--vmware-ssh-user`: SSH user
+- `--vmware-vdisk-mgr-dir-path`: (For VMware Player only) Installation directory of Virtual Disk Development Kit
+- `--vmware-vix-dir-path`: (For VMware Player only) Installation directory of VMware VIX SDK
 
 #### Environment variables and default values
 
-| CLI option                 | Environment variable   | Default                  |
-|----------------------------|------------------------|--------------------------|
-| `--vmware-boot2docker-url` | VMWARE_BOOT2DOCKER_URL | *Latest boot2docker url* |
-| `--vmware-configdrive-url` | VMWARE_CONFIGDRIVE_URL | -                        |
-| `--vmware-cpu-count`       | VMWARE_CPU_COUNT       | `1`                      |
-| `--vmware-disk-size`       | VMWARE_DISK_SIZE       | `20000`                  |
-| `--vmware-memory-size`     | VMWARE_MEMORY_SIZE     | `1024`                   |
-| `--vmware-no-share`        | VMWARE_NO_SHARE        | -                        |
-| `--vmware-ssh-password`    | VMWARE_SSH_PASSWORD    | `tcuser`                 |
-| `--vmware-ssh-user`        | VMWARE_SSH_USER        | `docker`                 |
+| CLI option                     | Environment variable       | Default                  |
+|--------------------------------|----------------------------|--------------------------|
+| `--vmware-boot2docker-url`     | VMWARE_BOOT2DOCKER_URL     | *Latest boot2docker url* |
+| `--vmware-configdrive-url`     | VMWARE_CONFIGDRIVE_URL     | -                        |
+| `--vmware-cpu-count`           | VMWARE_CPU_COUNT           | `1`                      |
+| `--vmware-disk-size`           | VMWARE_DISK_SIZE           | `20000`                  |
+| `--vmware-memory-size`         | VMWARE_MEMORY_SIZE         | `1024`                   |
+| `--vmware-no-share`            | VMWARE_NO_SHARE            | -                        |
+| `--vmware-ssh-password`        | VMWARE_SSH_PASSWORD        | `tcuser`                 |
+| `--vmware-ssh-user`            | VMWARE_SSH_USER            | `docker`                 |
+| `--vmware-vdisk-mgr-dir-path`  | VMWARE_VDISK_MGR_DIR_PATH  | -                        |
+| `--vmware-ssh-user`            | VMWARE_SSH_USER            | -                        |
 
 
 ## License

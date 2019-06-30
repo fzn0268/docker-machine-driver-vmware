@@ -33,8 +33,8 @@ import (
 )
 
 var (
-	vmrunbin    = setVmwareCmd("vmrun")
-	vdiskmanbin = setVmwareCmd("vmware-vdiskmanager")
+	vmrunbin    = "vmrun"
+	vdiskmanbin = "vmware-vdiskmanager"
 )
 
 var (
@@ -54,7 +54,7 @@ func isMachineDebugEnabled() bool {
 }
 
 func vmrun(args ...string) (string, string, error) {
-	cmd := exec.Command(vmrunbin, args...)
+	cmd := exec.Command(setVmwareCmd(vmrunbin), args...)
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -78,9 +78,41 @@ func vmrun(args ...string) (string, string, error) {
 	return stdout.String(), stderr.String(), err
 }
 
+func getVmrunFunc(vmrunDirPath string) func(args ...string) (string, string, error) {
+	var binPath = setVmwareCmd(vmrunbin)
+	if vmrunDirPath != "" {
+		binPath = setVmwareCmdWithDirPath(vmrunDirPath, vmrunbin)
+	}
+	fmt.Printf("vmrunPath: %s\n", binPath)
+	return func(args ...string) (string, string, error) {
+		cmd := exec.Command(binPath, args...)
+
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout, cmd.Stderr = &stdout, &stderr
+
+		if isMachineDebugEnabled() {
+			// write stdout to stderr because stdout is used for parsing sometimes
+			cmd.Stdout = io.MultiWriter(os.Stderr, cmd.Stdout)
+			cmd.Stderr = io.MultiWriter(os.Stderr, cmd.Stderr)
+		}
+
+		log.Debugf("executing: %v %v", vmrunbin, strings.Join(args, " "))
+
+		err := cmd.Run()
+		if err != nil {
+			if ee, ok := err.(*exec.Error); ok && ee == exec.ErrNotFound {
+				err = ErrVMRUNNotFound
+			}
+		}
+
+		return stdout.String(), stderr.String(), err
+	}
+}
+
 // Make a vmdk disk image with the given size (in MB).
 func vdiskmanager(dest string, size int) error {
-	cmd := exec.Command(vdiskmanbin, "-c", "-t", "0", "-s", fmt.Sprintf("%dMB", size), "-a", "lsilogic", dest)
+	cmd := exec.Command(setVmwareCmd(vdiskmanbin), "-c", "-t", "0", "-s", fmt.Sprintf("%dMB", size), "-a", "lsilogic", dest)
 	if isMachineDebugEnabled() {
 		// write stdout to stderr because stdout is used for parsing sometimes
 		cmd.Stdout = os.Stderr
@@ -93,4 +125,27 @@ func vdiskmanager(dest string, size int) error {
 		}
 	}
 	return nil
+}
+
+func getVdiskmanagerFunc(vdiskmanDirPath string) func(dest string, size int) error {
+	var binPath = setVmwareCmd(vdiskmanbin)
+	if vdiskmanDirPath != "" {
+		binPath = setVmwareCmdWithDirPath(vdiskmanDirPath, vdiskmanbin)
+	}
+	fmt.Printf("vDiskManagerPath: %s\n", binPath)
+	return func(dest string, size int) error {
+		cmd := exec.Command(binPath, "-c", "-t", "0", "-s", fmt.Sprintf("%dMB", size), "-a", "lsilogic", dest)
+		if isMachineDebugEnabled() {
+			// write stdout to stderr because stdout is used for parsing sometimes
+			cmd.Stdout = os.Stderr
+			cmd.Stderr = os.Stderr
+		}
+
+		if stdout := cmd.Run(); stdout != nil {
+			if ee, ok := stdout.(*exec.Error); ok && ee == exec.ErrNotFound {
+				return ErrVMRUNNotFound
+			}
+		}
+		return nil
+	}
 }

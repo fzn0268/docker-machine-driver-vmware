@@ -89,6 +89,8 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.SSHPassword = flags.String("vmware-ssh-password")
 	d.SSHPort = 22
 	d.NoShare = flags.Bool("vmware-no-share")
+	d.VIXPath = flags.String("vmware-vix-dir-path")
+	d.VDiskMgrPath = flags.String("vmware-vdisk-mgr-dir-path")
 
 	// We support a maximum of 16 cpu to be consistent with Virtual Hardware 10
 	// specs.
@@ -150,7 +152,8 @@ func (d *Driver) GetState() (state.State, error) {
 		return state.Error, err
 	}
 
-	if stdout, _, _ := vmrun("list"); strings.Contains(stdout, vmxp) {
+	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	if stdout, _, _ := vmrunFunc("list"); strings.Contains(stdout, vmxp) {
 		return state.Running, nil
 	}
 	return state.Stopped, nil
@@ -208,7 +211,8 @@ func (d *Driver) Create() error {
 			return err
 		}
 
-		if err := vdiskmanager(diskImg, d.DiskSize); err != nil {
+		var vdiskmanagerFunc = getVdiskmanagerFunc(d.VDiskMgrPath)
+		if err := vdiskmanagerFunc(diskImg, d.DiskSize); err != nil {
 			return err
 		}
 	}
@@ -218,7 +222,8 @@ func (d *Driver) Create() error {
 
 func (d *Driver) Start() error {
 	log.Infof("Starting %s...", d.MachineName)
-	vmrun("start", d.vmxPath(), "nogui")
+	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	vmrunFunc("start", d.vmxPath(), "nogui")
 
 	var ip string
 	var err error
@@ -296,19 +301,19 @@ func (d *Driver) Start() error {
 	}
 
 	// Test if /var/lib/boot2docker exists
-	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "directoryExistsInGuest", d.vmxPath(), "/var/lib/boot2docker")
+	vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "directoryExistsInGuest", d.vmxPath(), "/var/lib/boot2docker")
 
 	// Copy SSH keys bundle
-	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "CopyFileFromHostToGuest", d.vmxPath(), d.ResolveStorePath("userdata.tar"), "/home/docker/userdata.tar")
+	vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "CopyFileFromHostToGuest", d.vmxPath(), d.ResolveStorePath("userdata.tar"), "/home/docker/userdata.tar")
 
 	// Expand tar file.
-	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo sh -c \"tar xvf /home/docker/userdata.tar -C /home/docker > /var/log/userdata.log 2>&1 && chown -R docker:staff /home/docker\"")
+	vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo sh -c \"tar xvf /home/docker/userdata.tar -C /home/docker > /var/log/userdata.log 2>&1 && chown -R docker:staff /home/docker\"")
 
 	// copy to /var/lib/boot2docker
-	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo /bin/mv /home/docker/userdata.tar /var/lib/boot2docker/userdata.tar")
+	vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo /bin/mv /home/docker/userdata.tar /var/lib/boot2docker/userdata.tar")
 
 	// Enable Shared Folders
-	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "enableSharedFolders", d.vmxPath())
+	vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "enableSharedFolders", d.vmxPath())
 
 	shareName, hostDir, shareDir := getShareDriveAndName()
 	if hostDir != "" && !d.NoShare {
@@ -316,16 +321,17 @@ func (d *Driver) Start() error {
 			return err
 		} else if !os.IsNotExist(err) {
 			// add shared folder, create mountpoint and mount it.
-			vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "addSharedFolder", d.vmxPath(), shareName, hostDir)
+			vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "addSharedFolder", d.vmxPath(), shareName, hostDir)
 			command := mountCommand(shareName, shareDir)
-			vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
+			vmrunFunc("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
 		}
 	}
 	return nil
 }
 
 func (d *Driver) Stop() error {
-	_, _, err := vmrun("stop", d.vmxPath(), "nogui")
+	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	_, _, err := vmrunFunc("stop", d.vmxPath(), "nogui")
 	return err
 }
 
@@ -339,7 +345,8 @@ func (d *Driver) Restart() error {
 }
 
 func (d *Driver) Kill() error {
-	_, _, err := vmrun("stop", d.vmxPath(), "hard nogui")
+	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	_, _, err := vmrunFunc("stop", d.vmxPath(), "hard nogui")
 	return err
 }
 
@@ -351,7 +358,8 @@ func (d *Driver) Remove() error {
 		}
 	}
 	log.Infof("Deleting %s...", d.MachineName)
-	vmrun("deleteVM", d.vmxPath(), "nogui")
+	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	vmrunFunc("deleteVM", d.vmxPath(), "nogui")
 	return nil
 }
 

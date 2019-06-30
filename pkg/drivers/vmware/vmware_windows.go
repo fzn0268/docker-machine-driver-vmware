@@ -29,7 +29,7 @@ func init() {
 	// Parse HKEY_.CLASSES_ROOT\vm\shell\open\command's value like:
 	// "C:\Program Files (x86)\VMware\VMware Workstation\vmware.exe" "%1"
 	// in order to the Workstation install dir.
-	key, err := registry.OpenKey(registry.CLASSES_ROOT, `vm\shell\open\command`, registry.QUERY_VALUE)
+	key, err := registry.OpenKey(registry.CLASSES_ROOT, `vmrc\shell\open\command`, registry.QUERY_VALUE)
 	if err != nil {
 		return
 	}
@@ -60,6 +60,11 @@ func SetUmask() {
 func setVmwareCmd(cmd string) string {
 	cmd = cmd + ".exe"
 	return filepath.Join(windowsInstallDir, cmd)
+}
+
+func setVmwareCmdWithDirPath(dirPath string, cmd string) string {
+	cmd = cmd + ".exe"
+	return filepath.Join(dirPath, cmd)
 }
 
 func getShareDriveAndName() (string, string, string) {

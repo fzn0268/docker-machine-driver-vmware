@@ -14,7 +14,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8da8bb2b12c31c632e96ca6f15666a36c36cd390326b6c5e1c5e309cf4b5419a"
+  digest = "1:9857dce653aab290cef50f602aec3d75c6877877cbd1b163e8814465e9718771"
   name = "github.com/docker/docker"
   packages = [
     "pkg/term",
