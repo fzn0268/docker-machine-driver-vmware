@@ -83,7 +83,7 @@ func getVmrunFunc(vmrunDirPath string) func(args ...string) (string, string, err
 	if vmrunDirPath != "" {
 		binPath = setVmwareCmdWithDirPath(vmrunDirPath, vmrunbin)
 	}
-	fmt.Printf("vmrunPath: %s\n", binPath)
+	log.Debug("vmrunPath: %s\n", binPath)
 	return func(args ...string) (string, string, error) {
 		cmd := exec.Command(binPath, args...)
 
@@ -132,7 +132,7 @@ func getVdiskmanagerFunc(vdiskmanDirPath string) func(dest string, size int) err
 	if vdiskmanDirPath != "" {
 		binPath = setVmwareCmdWithDirPath(vdiskmanDirPath, vdiskmanbin)
 	}
-	fmt.Printf("vDiskManagerPath: %s\n", binPath)
+	log.Debug("vDiskManagerPath: %s\n", binPath)
 	return func(dest string, size int) error {
 		cmd := exec.Command(binPath, "-c", "-t", "0", "-s", fmt.Sprintf("%dMB", size), "-a", "lsilogic", dest)
 		if isMachineDebugEnabled() {
