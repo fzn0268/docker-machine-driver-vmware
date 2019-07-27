@@ -49,6 +49,7 @@ type Config struct {
 	NoShare        bool
 	VIXPath        string
 	VDiskMgrPath   string
+	HostType       string
 }
 
 // NewConfig creates a new Config
@@ -126,6 +127,11 @@ func (c *Config) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "VMWARE_VDISK_MGR_DIR_PATH",
 			Name:   "vmware-vdisk-mgr-dir-path",
 			Usage:  "Specify VMware vDisk Manager Directory Path",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "VMWARE_HOST_TYPE",
+			Name:   "vmware-host-type",
+			Usage:  "Specify vmrun host type parameter(-T)",
 		},
 	}
 }

@@ -54,6 +54,7 @@ $ docker-machine create --driver=vmware default
 - `--vmware-ssh-user`: SSH user
 - `--vmware-vdisk-mgr-dir-path`: (For VMware Player only) Installation directory of Virtual Disk Development Kit
 - `--vmware-vix-dir-path`: (For VMware Player only) Installation directory of VMware VIX SDK
+- `--vmware-host-type`: Host type parameter for vmrun
 
 #### Environment variables and default values
 

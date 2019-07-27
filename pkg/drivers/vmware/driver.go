@@ -91,6 +91,7 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.NoShare = flags.Bool("vmware-no-share")
 	d.VIXPath = flags.String("vmware-vix-dir-path")
 	d.VDiskMgrPath = flags.String("vmware-vdisk-mgr-dir-path")
+	d.HostType = flags.String("vmware-host-type")
 
 	// We support a maximum of 16 cpu to be consistent with Virtual Hardware 10
 	// specs.
@@ -152,7 +153,7 @@ func (d *Driver) GetState() (state.State, error) {
 		return state.Error, err
 	}
 
-	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	var vmrunFunc = getVmrunFunc(d.VIXPath, d.HostType)
 	if stdout, _, _ := vmrunFunc("list"); strings.Contains(stdout, vmxp) {
 		return state.Running, nil
 	}
@@ -222,7 +223,7 @@ func (d *Driver) Create() error {
 
 func (d *Driver) Start() error {
 	log.Infof("Starting %s...", d.MachineName)
-	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	var vmrunFunc = getVmrunFunc(d.VIXPath, d.HostType)
 	vmrunFunc("start", d.vmxPath(), "nogui")
 
 	var ip string
@@ -330,7 +331,7 @@ func (d *Driver) Start() error {
 }
 
 func (d *Driver) Stop() error {
-	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	var vmrunFunc = getVmrunFunc(d.VIXPath, d.HostType)
 	_, _, err := vmrunFunc("stop", d.vmxPath(), "nogui")
 	return err
 }
@@ -345,7 +346,7 @@ func (d *Driver) Restart() error {
 }
 
 func (d *Driver) Kill() error {
-	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	var vmrunFunc = getVmrunFunc(d.VIXPath, d.HostType)
 	_, _, err := vmrunFunc("stop", d.vmxPath(), "hard nogui")
 	return err
 }
@@ -358,7 +359,7 @@ func (d *Driver) Remove() error {
 		}
 	}
 	log.Infof("Deleting %s...", d.MachineName)
-	var vmrunFunc = getVmrunFunc(d.VIXPath)
+	var vmrunFunc = getVmrunFunc(d.VIXPath, d.HostType)
 	vmrunFunc("deleteVM", d.vmxPath(), "nogui")
 	return nil
 }

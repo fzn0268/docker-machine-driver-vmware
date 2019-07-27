@@ -78,14 +78,18 @@ func vmrun(args ...string) (string, string, error) {
 	return stdout.String(), stderr.String(), err
 }
 
-func getVmrunFunc(vmrunDirPath string) func(args ...string) (string, string, error) {
+func getVmrunFunc(vmrunDirPath string, hostType string) func(args ...string) (string, string, error) {
 	var binPath = setVmwareCmd(vmrunbin)
 	if vmrunDirPath != "" {
 		binPath = setVmwareCmdWithDirPath(vmrunDirPath, vmrunbin)
 	}
 	log.Debug("vmrunPath: %s\n", binPath)
 	return func(args ...string) (string, string, error) {
-		cmd := exec.Command(binPath, args...)
+		arguments := args
+		if hostType != "" {
+			arguments = append([]string{"-T", hostType}, args...)
+		}
+		cmd := exec.Command(binPath, arguments...)
 
 		var stdout bytes.Buffer
 		var stderr bytes.Buffer
@@ -97,7 +101,7 @@ func getVmrunFunc(vmrunDirPath string) func(args ...string) (string, string, err
 			cmd.Stderr = io.MultiWriter(os.Stderr, cmd.Stderr)
 		}
 
-		log.Debugf("executing: %v %v", vmrunbin, strings.Join(args, " "))
+		log.Debugf("executing: %v %v", vmrunbin, strings.Join(arguments, " "))
 
 		err := cmd.Run()
 		if err != nil {
